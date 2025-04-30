@@ -1,2 +1,2 @@
 # GovDocsTransition
-Scripts supporting transition from MARCIVE to OCLC delivery.
+A set of scripts supporting transition from MARCIVE to OCLC for delivery of MARC records .
