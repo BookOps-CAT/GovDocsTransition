@@ -8,7 +8,7 @@ def cli() -> None:
 @cli.command()
 def test_cli():
     """Prints a greeting."""
-    click.echo("Hello, World!")
+    click.echo("Success!")
 
 
 def main_cli() -> None:
