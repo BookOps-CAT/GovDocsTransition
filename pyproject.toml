@@ -15,6 +15,12 @@ dependencies = [
     "click (>=8.1.8,<9.0.0)"
 ]
 
+[project.scripts]
+govdocs = "govdocs.cli:main_cli"
+
+[tool.poetry]
+packages = [{include = "govdocs"}]
+
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
 black = "^25.1.0"
