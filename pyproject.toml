@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-govdocs = "govdocs.cli:main_cli"
+govdocs = "govdocs.cli:cli"
 
 [tool.poetry]
 packages = [{include = "govdocs"}]

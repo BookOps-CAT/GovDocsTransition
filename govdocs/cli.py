@@ -2,14 +2,15 @@ import click
 
 
 @click.group()
-def cli() -> None:
+def main_cli() -> None:
     pass
 
-@cli.command()
+
+@main_cli.command()
 def test_cli():
     """Prints a greeting."""
     click.echo("Success!")
 
 
-def main_cli() -> None:
-    cli()
+def cli() -> None:
+    main_cli()
