@@ -7,7 +7,12 @@ def is_eres_safe_to_delete(row):
     if (
         row["dupControlNo"] == True
         and row["matType"] == "w  "
-        and (row["loc"] == "ia   " or row["loc"] == "iarch")
+        and (
+            row["loc"] == "ia   "
+            or row["loc"] == "iarch"
+            or row["loc"] == "ia,iarch"
+            or row["loc"] == "iarch,ia"
+        )
         and pd.isna(row["itemNo"])
         and pd.isna(row["orderNo"])
         and pd.isna(row["holdingNo"])
