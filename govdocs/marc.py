@@ -40,3 +40,27 @@ def extract_controlnos(src_path: Path) -> Path:
             else:
                 raise ValueError(f"Control number not found in record: {n + 1}")
     return out_path
+
+
+def select_bibs_on_controlnos(controlNos_fh: Path, marc_fh: Path) -> None:
+    """
+    Selects MARC records based on control numbers from a CSV file
+    and writes the selected records to a new MARC file.
+
+    Args:
+        controlNos_fh (Path): Path to the CSV file containing control numbers.
+        marc_fh (Path): Path to the MARC file.
+    """
+    control_nos = set()
+    with open(controlNos_fh, "r") as f:
+        for line in f:
+            control_nos.add(line.strip())
+
+    with (
+        open(marc_fh, "rb") as marc_file,
+        open(marc_fh.with_suffix(".selected.mrc"), "ab") as out_file,
+    ):
+        reader = MARCReader(marc_file)
+        for record in reader:
+            if record["001"].value().strip() in control_nos:
+                out_file.write(record.as_marc())

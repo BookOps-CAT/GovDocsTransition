@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 
 
-from govdocs.marc import extract_controlnos
+from govdocs.marc import extract_controlnos, select_bibs_on_controlnos
 from govdocs.analysis import (
     get_eres_df,
     produce_safe2delete_dups_report,
@@ -31,6 +31,30 @@ def get_controlnos(src: str) -> None:
     src_path = Path(src)
     out = extract_controlnos(src_path)
     click.echo(f"OCLC control numbers extracted to: `{out}`.")
+
+
+@main_cli.command()
+@click.argument("controlNo", type=click.Path(exists=True))
+@click.argument("marc", type=click.Path(exists=True))
+def select_bibs(controlNos: str, marc: str) -> None:
+    """
+    Selects MARC records based on control numbers from a CSV file
+    and writes the selected records to a new MARC file.
+
+    Args:
+        controlNos (str): Path to the CSV file containing control numbers.
+        marc (str): Path to the MARC file.
+    """
+    controlNos_fh = Path(controlNos)
+    marc_fh = Path(marc)
+    click.echo(
+        f"Selecting MARC records from {marc_fh} using control numbers from "
+        f"{controlNos_fh}..."
+    )
+
+    select_bibs_on_controlnos(controlNos_fh, marc_fh)
+
+    click.echo("MARC records selected successfully.")
 
 
 @main_cli.command()
