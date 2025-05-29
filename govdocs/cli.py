@@ -3,7 +3,11 @@ from pathlib import Path
 import click
 
 
-from govdocs.marc import extract_controlnos, select_bibs_on_controlnos
+from govdocs.marc import (
+    extract_controlnos,
+    select_bibs_on_controlnos,
+    separate_mon_vs_ser,
+)
 from govdocs.analysis import (
     get_eres_df,
     produce_safe2delete_dups_report,
@@ -34,27 +38,35 @@ def get_controlnos(src: str) -> None:
 
 
 @main_cli.command()
-@click.argument("controlNo", type=click.Path(exists=True))
-@click.argument("marc", type=click.Path(exists=True))
-def select_bibs(controlNos: str, marc: str) -> None:
+@click.argument("csv_fh", type=click.Path(exists=True))
+@click.argument("marc_fh", type=click.Path(exists=True))
+def select_bibs(csv_fh: str, marc_fh: str) -> None:
     """
     Selects MARC records based on control numbers from a CSV file
     and writes the selected records to a new MARC file.
 
     Args:
-        controlNos (str): Path to the CSV file containing control numbers.
-        marc (str): Path to the MARC file.
+        csv_fh (str): Path to the CSV file containing control numbers.
+        marc_fh (str): Path to the MARC file.
     """
-    controlNos_fh = Path(controlNos)
-    marc_fh = Path(marc)
+    controlNos_src = Path(csv_fh)
+    marc_src = Path(marc_fh)
     click.echo(
-        f"Selecting MARC records from {marc_fh} using control numbers from "
-        f"{controlNos_fh}..."
+        f"Selecting MARC records from {marc_src} using control numbers from "
+        f"{controlNos_src}..."
     )
 
-    select_bibs_on_controlnos(controlNos_fh, marc_fh)
+    select_bibs_on_controlnos(controlNos_src, marc_src)
 
     click.echo("MARC records selected successfully.")
+
+
+@main_cli.command()
+@click.argument("marc_fh", type=click.Path(exists=True))
+def split_serials_and_mono(marc_fh: str):
+    marcfile = Path(marc_fh)
+    separate_mon_vs_ser(marcfile)
+    click.echo(f"Separation of serials and monographs completed.")
 
 
 @main_cli.command()

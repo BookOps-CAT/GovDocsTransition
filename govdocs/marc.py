@@ -4,6 +4,13 @@ from typing import Generator
 from pymarc import MARCReader, Record
 
 
+def is_serial(leader: str) -> bool:
+    if leader[7] in ("s", "i", "b"):
+        return True
+    else:
+        return False
+
+
 def read_marc_file(file_path: Path) -> Generator[Record, None, None]:
     """
     Reads a MARC file and returns a list of MARC records.
@@ -64,3 +71,18 @@ def select_bibs_on_controlnos(controlNos_fh: Path, marc_fh: Path) -> None:
         for record in reader:
             if record["001"].value().strip() in control_nos:
                 out_file.write(record.as_marc())
+
+
+def separate_mon_vs_ser(marcfile: Path) -> tuple:
+    with (
+        open(marcfile, "rb") as src,
+        open(marcfile.with_suffix(".SERIAL.mrc"), "ab") as out_ser,
+        open(marcfile.with_suffix(".MONO.mrc"), "ab") as out_mon,
+    ):
+        reader = MARCReader(src)
+        for record in reader:
+            if is_serial(record.leader):
+                out_ser.write(record.as_marc())
+            else:
+                out_mon.write(record.as_marc())
+        return src, out_ser, out_mon
