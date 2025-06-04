@@ -14,6 +14,7 @@ from govdocs.analysis import (
     produce_unsafe2delete_dups_report,
     produce_overwrite_review_needed_report,
 )
+from govdocs.utils import get_directory, unpack_zipfiles
 
 
 @click.group()
@@ -79,6 +80,30 @@ def pre_load_eres_reports() -> None:
     click.echo(
         "See: safe2delete-dups.cvs, unsafe2delete-dups.csv, unsafe2overwrite-single.csv"
     )
+
+
+@main_cli.command()
+@click.argument("delivery_date", type=str)
+def reconcile(delivery_date: str) -> None:
+    """
+    Prepares the files for a given delivery date for reconciliation with Sierra.
+    New, updated, and merge records are modified accordingly. Deleted records are
+    parsed to conveniently create a list in Sierra for global deletions.
+
+    Args:
+        delivery_date (str): The delivery date in YYYY-MM-DD format.
+    """
+    # create a list of OCLC # for deletions
+    # prep new records (remove OCLC prefix, call #, etc.)
+    # prep updated records (remove OCLC prefix, remove 6xx)
+    # search Platform API for merged (remove OCLC prefix, remove 6xx, set matching point)
+    delivery_dir = get_directory(delivery_date)
+    click.echo(f"Unpacking zip files in {delivery_dir}...")
+    unpacked_files = unpack_zipfiles(delivery_dir)
+    click.echo(f"Unpacked files: {unpacked_files}")
+    # click.echo(f"Preparing import files for delivery date: {delivery_date}...")
+    # Placeholder for actual implementation
+    # click.echo("Import files prepared successfully.")
 
 
 @main_cli.command()
