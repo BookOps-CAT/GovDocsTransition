@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import Generator
 
-from pymarc import MARCReader, Record
+from pymarc import MARCReader, Record, Field, Subfield, Indicators
+from bookops_marc import SierraBibReader
 
 
 def is_serial(leader: str) -> bool:
@@ -86,3 +87,60 @@ def separate_mon_vs_ser(marcfile: Path) -> tuple:
             else:
                 out_mon.write(record.as_marc())
         return src, out_ser, out_mon
+
+
+def add_url_label_to_856(record: Record) -> None:
+    """
+    Adds a URL label in the subfield $z to the 856 field of a MARC record.
+
+    Args:
+        record (Record): The MARC record to modify.
+    """
+    for field in record.get_fields("856"):
+        if field.indicators == Indicators("4", "0"):
+            field["z"] = "Full text available via FDLP"
+
+
+def add_call_number(record: Record, prefix: str) -> None:
+    """
+    Adds a call number in the 099 field to the MARC record if it is not already present.
+
+    Args:
+        record (Record): The MARC record to modify.
+    """
+    for field in record.get_fields("086"):
+        gpo_class = field.value().strip()
+        record.add_field(
+            Field(
+                tag="099",
+                indicators=Indicators(" ", "9"),
+                subfields=[Subfield(code="a", value=f"{prefix}{gpo_class}")],
+            )
+        )
+
+
+def prep4SierraLoad(marcfile: Path) -> Path:
+    """
+    Prepares MARC records for Sierra load.
+
+    Args:
+        marcfile (Path): Path to the MARC file.
+    """
+    out_file = marcfile.with_suffix(".SIERRA-LOAD-READY.mrc")
+    with (
+        open(marcfile, "rb") as src,
+        open(out_file, "ab") as out,
+    ):
+        reader = SierraBibReader(src, library="NYPL")
+        for bib in reader:
+            bib.normalize_oclc_control_number()
+            bib.remove_unsupported_subjects()
+            add_url_label_to_856(bib)
+            if ".new." in marcfile.name and "ERES." in marcfile.name:
+                add_call_number(bib, prefix="GPO Internet ")
+            elif ".new." in marcfile.name and "PRINT." in marcfile.name:
+                pass  # to be implemented
+            else:
+                pass  # no call number needed
+            out.write(bib.as_marc())
+    return out_file
