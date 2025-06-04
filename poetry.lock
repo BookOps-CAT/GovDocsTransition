@@ -265,6 +265,25 @@ webencodings = "*"
 css = ["tinycss2 (>=1.1.0,<1.5)"]
 
 [[package]]
+name = "bookops-marc"
+version = "0.12.0"
+description = "A sweetened `pymarc.Record` module for extraction of data from local Sierra records."
+optional = false
+python-versions = "^3.8"
+groups = ["main"]
+files = []
+develop = false
+
+[package.dependencies]
+pymarc = "^5.2.3"
+
+[package.source]
+type = "git"
+url = "https://github.com/BookOps-CAT/bookops-marc.git"
+reference = "0.12.0"
+resolved_reference = "ba3c52d262eaca26b3c9513fb82ae9c7ba08251c"
+
+[[package]]
 name = "bookops-nypl-platform"
 version = "0.5.0"
 description = "BookOps Python wrapper around NYPL Platform API"
@@ -2648,4 +2667,4 @@ test = ["websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~=3.12"
-content-hash = "4720951c55175f5eb9025295f0c5e6a8815003103865664075cb04e0107a3971"
+content-hash = "672a720e1c556d9b204a77d96860c7ec6b6f2ba5e984f5b133601a53c6ac81f4"
