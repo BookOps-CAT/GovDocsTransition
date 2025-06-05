@@ -5,6 +5,7 @@ import click
 
 from govdocs.marc import (
     extract_controlnos,
+    prep_for_sierra_load,
     select_bibs_on_controlnos,
     separate_mon_vs_ser,
 )
@@ -100,9 +101,16 @@ def reconcile(delivery_date: str) -> None:
     delivery_dir = get_directory(delivery_date)
     click.echo(f"Unpacking zip files in {delivery_dir}...")
     unpacked_files = unpack_zipfiles(delivery_dir)
-    click.echo(f"Unpacked files: {unpacked_files}")
+    click.echo(f"Found {len(unpacked_files)} zip files: {unpacked_files}")
+    for f in unpacked_files:
+        if ".deletes." in f:
+            pass
+        elif ".merges." in f:
+            pass
+        else:
+            click.echo(f"Preparing MARC file for Sierra load: {f}")
+            prep_for_sierra_load(delivery_dir / f)
     # click.echo(f"Preparing import files for delivery date: {delivery_date}...")
-    # Placeholder for actual implementation
     # click.echo("Import files prepared successfully.")
 
 

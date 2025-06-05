@@ -98,7 +98,8 @@ def add_url_label_to_856(record: Record) -> None:
     """
     for field in record.get_fields("856"):
         if field.indicators == Indicators("4", "0"):
-            field["z"] = "Full text available via FDLP"
+            field.delete_subfield("z")
+            field.add_subfield(code="z", value="Full text available via FDLP")
 
 
 def add_call_number(record: Record, prefix: str) -> None:
@@ -119,7 +120,7 @@ def add_call_number(record: Record, prefix: str) -> None:
         )
 
 
-def prep4SierraLoad(marcfile: Path) -> Path:
+def prep_for_sierra_load(marcfile: Path) -> Path:
     """
     Prepares MARC records for Sierra load.
 
@@ -131,13 +132,15 @@ def prep4SierraLoad(marcfile: Path) -> Path:
         open(marcfile, "rb") as src,
         open(out_file, "ab") as out,
     ):
-        reader = SierraBibReader(src, library="NYPL")
+        reader = SierraBibReader(src, library="nypl")
         for bib in reader:
             bib.normalize_oclc_control_number()
             bib.remove_unsupported_subjects()
-            add_url_label_to_856(bib)
-            if ".new." in marcfile.name and "ERES." in marcfile.name:
-                add_call_number(bib, prefix="GPO Internet ")
+            if "ERES." in marcfile.name:
+                add_url_label_to_856(bib)
+                if ".new." in marcfile.name:
+                    add_call_number(bib, prefix="GPO Internet ")
+                add_url_label_to_856(bib)
             elif ".new." in marcfile.name and "PRINT." in marcfile.name:
                 pass  # to be implemented
             else:
