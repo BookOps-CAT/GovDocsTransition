@@ -1,5 +1,5 @@
 [project]
-name = "godocstransition"
+name = "govdocstransition"
 version = "0.1.0"
 description = "A set of scripts supporting transition of delivery of Government Documents records from MARCIVE to OCLC."
 authors = [
