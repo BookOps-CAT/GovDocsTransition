@@ -6,7 +6,7 @@ from bookops_marc import SierraBibReader
 
 
 def is_serial(leader: str) -> bool:
-    if leader[7] in ("s", "i", "b"):
+    if leader[7] in ("s", "b"):
         return True
     else:
         return False
