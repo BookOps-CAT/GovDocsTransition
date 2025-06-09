@@ -3,6 +3,7 @@ from typing import Generator
 
 from pymarc import MARCReader, Record, Field, Subfield, Indicators
 from bookops_marc import SierraBibReader
+from bookops_marc.models import OclcNumber
 
 
 def is_serial(leader: str) -> bool:
@@ -68,10 +69,11 @@ def select_bibs_on_controlnos(controlNos_fh: Path, marc_fh: Path) -> None:
         open(marc_fh, "rb") as marc_file,
         open(marc_fh.with_suffix(".selected.mrc"), "ab") as out_file,
     ):
-        reader = MARCReader(marc_file)
-        for record in reader:
-            if record["001"].value().strip() in control_nos:
-                out_file.write(record.as_marc())
+        reader = SierraBibReader(marc_file, library="nypl")
+        for bib in reader:
+            controlNo = OclcNumber(bib.control_number).without_prefix
+            if controlNo in control_nos:
+                out_file.write(bib.as_marc())
 
 
 def separate_mon_vs_ser(marcfile: Path) -> tuple:
