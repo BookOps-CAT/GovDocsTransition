@@ -6,6 +6,52 @@ from bookops_marc import SierraBibReader
 from bookops_marc.models import OclcNumber
 
 
+def determine_material_type(record: Record) -> str:
+    """
+    Determines the material type of a MARC record based on its leader.
+
+    Args:
+        record (Record): The MARC record to analyze.
+
+    Returns:
+        str: The material type.
+    """
+    leader = record.leader
+    if leader[6] in "a":
+        t008 = record.get("008")
+        if t008:
+            if t008.data[23] == "d":
+                # large print
+                return "d"
+            elif t008.data[23] in ("a", "b", "c"):
+                # microform
+                return "h"
+            elif t008.data[23] == "o":
+                # web resource
+                return "w"
+            elif t008.data[23] == "q":
+                return "m"
+    elif leader[6] == "e":
+        # map
+        return "e"
+    elif leader[6] == "g":
+        t008 = record.get("008")
+        if t008:
+            if t008.data[23] == "d":
+                pass
+            
+    elif leader[6] == "k":
+        # picture
+        return "k"
+    elif leader[6] == "o":
+        # kit
+        return "o"
+    elif leader[6] == "m":
+        # computer file
+        return "m"
+    else:
+        return None
+
 def is_serial(leader: str) -> bool:
     if leader[7] in ("s", "b"):
         return True
@@ -146,6 +192,10 @@ def prep_for_sierra_load(marcfile: Path) -> Path:
             elif ".new." in marcfile.name and "PRINT." in marcfile.name:
                 pass  # to be implemented
             else:
-                pass  # no call number needed
+                # initial load for print
+                matType = determine_material_type(bib)
             out.write(bib.as_marc())
     return out_file
+
+
+def 
