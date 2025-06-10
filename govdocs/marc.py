@@ -1,12 +1,13 @@
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Optional
+import warnings
 
 from pymarc import MARCReader, Record, Field, Subfield, Indicators
 from bookops_marc import SierraBibReader
 from bookops_marc.models import OclcNumber
 
 
-def determine_material_type(record: Record) -> str:
+def determine_material_type(record: Record) -> Optional[str]:
     """
     Determines the material type of a MARC record based on its leader.
 
@@ -17,29 +18,46 @@ def determine_material_type(record: Record) -> str:
         str: The material type.
     """
     leader = record.leader
-    if leader[6] in "a":
+    if leader[6] in ("a", "s", "b", "t"):
         t008 = record.get("008")
         if t008:
-            if t008.data[23] == "d":
+            if t008.data[23] == " ":
+                # regular print
+                return "a"
+            elif t008.data[23] == "d":
                 # large print
                 return "d"
             elif t008.data[23] in ("a", "b", "c"):
                 # microform
                 return "h"
-            elif t008.data[23] == "o":
+            elif t008.data[23] in ("o", "s"):
                 # web resource
                 return "w"
             elif t008.data[23] == "q":
                 return "m"
+            else:
+                warnings.warn(
+                    f"{record.control_number} : unknown material type 008/06 '{t008.data[23]}'"
+                )
+                return None
+        else:
+            return None
     elif leader[6] == "e":
         # map
         return "e"
     elif leader[6] == "g":
         t008 = record.get("008")
         if t008:
-            if t008.data[23] == "d":
-                pass
-            
+            if t008.data[28] == "b":
+                return "o"
+            elif t008.data[28] in ("i", "k", "l", "n"):
+                return "k"
+            elif t008.data[28] == ("v"):
+                return "v"
+            else:
+                return None
+        else:
+            return None
     elif leader[6] == "k":
         # picture
         return "k"
@@ -50,7 +68,11 @@ def determine_material_type(record: Record) -> str:
         # computer file
         return "m"
     else:
+        warnings.warn(
+            f"{record.control_number} : unknown material type leader '{leader[6]}'"
+        )
         return None
+
 
 def is_serial(leader: str) -> bool:
     if leader[7] in ("s", "b"):
@@ -148,6 +170,9 @@ def add_url_label_to_856(record: Record) -> None:
         if field.indicators == Indicators("4", "0"):
             field.delete_subfield("z")
             field.add_subfield(code="z", value="Full text available via FDLP")
+        elif field.indicators == Indicators("4", "1"):
+            field.delete_subfield("z")
+            field.add_subfield(code="z", value="Online version of the resource")
 
 
 def add_call_number(record: Record, prefix: str) -> None:
@@ -184,18 +209,23 @@ def prep_for_sierra_load(marcfile: Path) -> Path:
         for bib in reader:
             bib.normalize_oclc_control_number()
             bib.remove_unsupported_subjects()
+            add_url_label_to_856(bib)
             if "ERES." in marcfile.name:
                 add_url_label_to_856(bib)
                 if ".new." in marcfile.name:
                     add_call_number(bib, prefix="GPO Internet ")
-                add_url_label_to_856(bib)
             elif ".new." in marcfile.name and "PRINT." in marcfile.name:
                 pass  # to be implemented
             else:
                 # initial load for print
                 matType = determine_material_type(bib)
+                if matType and matType != "a":
+                    bib.add_field(
+                        Field(
+                            tag="949",
+                            indicators=Indicators(" ", " "),
+                            subfields=[Subfield(code="a", value=f"*b2={matType};")],
+                        )
+                    )
             out.write(bib.as_marc())
     return out_file
-
-
-def 
