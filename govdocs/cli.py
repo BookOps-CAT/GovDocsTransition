@@ -115,6 +115,15 @@ def reconcile(delivery_date: str) -> None:
 
 
 @main_cli.command()
+@click.argument("marcfile", type=click.Path(exists=True))
+def init_file_prep(marcfile: str) -> None:
+    marc_path = Path(marcfile)
+    click.echo(f"Initializing file preparation for MARC file: {marc_path}")
+    prep_for_sierra_load(marc_path)
+    click.echo("File preparation completed.")
+
+
+@main_cli.command()
 def test_cli():
     """Prints a greeting."""
     click.echo("Success!")
